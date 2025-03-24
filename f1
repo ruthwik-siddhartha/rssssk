@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Will You Die?</title>
+    <style>
+        :root {--primary: #121212; --secondary: #f0f0f0; --accent: #ff3b30; --overlay: rgba(0, 0, 0, 0.85);}
+        * {margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif;}
+        body {background-color: var(--primary); color: var(--secondary); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden;}
+        .container {max-width: 1200px; width: 100%; margin: 0 auto; padding: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh;}
+        
+        /* Interactive Title */
+        .title-container {position: relative; margin-bottom: 2rem; perspective: 800px;}
+        h1 {font-size: 4rem; text-align: center; letter-spacing: 2px; transition: all 0.3s ease; cursor: pointer;}
+        .glitch-title {color: var(--secondary); text-shadow: 0 0 10px rgba(255,59,48,0.8); position: relative; transform-style: preserve-3d;}
+        .glitch-title:hover {transform: translateZ(20px); text-shadow: 0 0 20px rgba(255,59,48,0.9);}
+        .glitch-title::before, .glitch-title::after {content: "How Will You Die?"; position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.8;}
+        .glitch-title::before {color: #0ff; z-index: -1; transform: translateX(-5px);}
+        .glitch-title::after {color: #f0f; z-index: -2; transform: translateX(5px);}
+        .glitch-title:hover::before {animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;}
+        .glitch-title:hover::after {animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) reverse both infinite;}
+        @keyframes glitch {0% {transform: translate(0)} 20% {transform: translate(-5px, 5px)} 40% {transform: translate(-5px, -5px)} 60% {transform: translate(5px, 5px)} 80% {transform: translate(5px, -5px)} 100% {transform: translate(0)}}
+        
+        p {font-size: 1.5rem; margin-bottom: 2rem; text-align: center; max-width: 700px; line-height: 1.6;}
+        .input-container {width: 100%; max-width: 600px; margin-bottom: 2rem;}
+        input[type="text"] {width: 100%; padding: 1rem; border: none; background-color: rgba(255, 255, 255, 0.1); color: var(--secondary); font-size: 1.2rem; border-radius: 8px; transition: all 0.3s ease; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);}
+        input[type="text"]:focus {outline: none; background-color: rgba(255, 255, 255, 0.15); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);}
+        .button {padding: 1rem 2rem; background-color: var(--accent); color: white; border: none; border-radius: 8px; font-size: 1.2rem; cursor: pointer; transition: all 0.3s ease; margin-top: 1rem; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 8px rgba(255, 59, 48, 0.3);}
+        .button:hover {background-color: #ff2921; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(255, 59, 48, 0.4);}
+        .buttons {display: flex; gap: 1rem; margin-top: 1rem; width: 100%; max-width: 600px; justify-content: center;}
+        .stop-button {position: fixed; bottom: 2rem; right: 2rem; background-color: rgba(255, 255, 255, 0.1); color: var(--secondary); padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; z-index: 10;}
+        .stop-button:hover {background-color: rgba(255, 255, 255, 0.2); transform: scale(1.05);}
+        .predictions {width: 100%; max-width: 800px; margin-top: 2rem; display: none;}
+        .prediction-item {background-color: rgba(255, 255, 255, 0.05); padding: 1rem; margin-bottom: 1rem; border-radius: 8px; backdrop-filter: blur(10px); animation: fadeIn 0.5s ease-in-out; transform-origin: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); border-left: 3px solid var(--accent);}
+        @keyframes fadeIn {from {opacity: 0; transform: scale(0.95);} to {opacity: 1; transform: scale(1);}}
+        
+        /* Enhanced overlay with confetti */
+        .overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--overlay); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; backdrop-filter: blur(8px);}
+        .overlay.active {opacity: 1; pointer-events: auto;}
+        .popup {background-color: var(--primary); padding: 3rem; border-radius: 1rem; max-width: 800px; width: 90%; text-align: center; position: relative; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); transform: scale(0.95); opacity: 0; transition: all 0.5s ease; z-index: 101;}
+        .overlay.active .popup {transform: scale(1); opacity: 1;}
+        .close-popup {position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; cursor: pointer; color: var(--secondary); opacity: 0.7; transition: opacity 0.3s ease;}
+        .close-popup:hover {opacity: 1;}
+        .popup h2 {font-size: 2.5rem; margin-bottom: 2rem; color: var(--secondary);}
+        .popup p {font-size: 1.2rem; line-height: 1.8; margin-bottom: 2rem;}
+        .confetti {position: absolute; width: 10px; height: 10px; background-color: #f00; top: -10px; z-index: 0;}
+        
+        @media (max-width: 768px) {h1 {font-size: 2.5rem;} p {font-size: 1.2rem;} .button {padding: 0.8rem 1.5rem; font-size: 1rem;}}
+        .loading {display: none; width: 60px; height: 60px; margin: 2rem auto;}
+        .loading:after {content: " "; display: block; width: 40px; height: 40px; margin: 8px; border-radius: 50%; border: 6px solid var(--accent); border-color: var(--accent) transparent var(--accent) transparent; animation: loading 1.2s linear infinite;}
+        @keyframes loading {0% {transform: rotate(0deg);} 100% {transform: rotate(360deg);}}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title-container">
+            <h1 class="glitch-title">How Will You Die?</h1>
+        </div>
+        <p>To know it, write down your present action—what you are doing and where you are.</p>
+        
+        <div class="input-container">
+            <input type="text" id="action-input" placeholder="I am currently...">
+            <div class="buttons">
+                <button id="predict-button" class="button">Predict</button>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading"></div>
+        <div class="predictions" id="predictions"></div>
+    </div>
+    
+    <div class="stop-button" id="stop-button">how to prevent death?</div>
+    
+    <div class="overlay" id="overlay">
+        <div class="popup">
+            <span class="close-popup" id="close-popup">×</span>
+            <h2>You are alive right now</h2>
+            <p>Death is beyond our control, but in this moment, you are alive! You have escaped every possibility that could have ended you.Let go of small worries and problems.Be grateful for life, for this moment.Will You?</p>
+            <button class="button" id="gratitude-button">I am grateful!</button>
+        </div>
+        <div id="confetti-container"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const el = (id) => document.getElementById(id);
+            const actionInput = el('action-input');
+            const predictButton = el('predict-button');
+            const predictions = el('predictions');
+            const stopButton = el('stop-button');
+            const overlay = el('overlay');
+            const closePopup = el('close-popup');
+            const gratitudeButton = el('gratitude-button');
+            const loading = el('loading');
+            const confettiContainer = el('confetti-container');
+            const title = document.querySelector('.glitch-title');
+            
+            // Reset function to restart the website
+            function resetWebsite() {
+                // Clear input
+                actionInput.value = '';
+                
+                // Hide predictions
+                predictions.style.display = 'none';
+                predictions.innerHTML = '';
+                
+                // Hide loading
+                loading.style.display = 'none';
+                
+                // Close overlay
+                overlay.classList.remove('active');
+                
+                // Clear confetti
+                confettiContainer.innerHTML = '';
+                
+                // Reset title animation
+                title.style.animation = '';
+                title.style.transform = '';
+            }
+            
+            // Add title interaction
+            title.addEventListener('mouseover', () => title.style.animation = 'pulse 0.8s infinite alternate');
+            title.addEventListener('mouseout', () => title.style.animation = '');
+            title.addEventListener('click', () => {
+                title.style.transform = 'translateZ(30px) rotateX(10deg)';
+                setTimeout(() => title.style.transform = '', 500);
+            });
+            
+            // Create confetti
+            function createConfetti() {
+                const colors = ['#ff3b30', '#5856d6', '#34c759', '#007aff', '#ff9500', '#af52de', '#ffcc00', '#ff2d55'];
+                confettiContainer.innerHTML = '';
+                
+                for (let i = 0; i < 150; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                    confetti.style.height = (Math.random() * 10 + 5) + 'px';
+                    confetti.style.opacity = Math.random() + 0.5;
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    
+                    // Animation
+                    const duration = Math.random() * 3 + 2;
+                    const delay = Math.random() * 2;
+                    confetti.style.animation = `fall ${duration}s ease-in ${delay}s infinite`;
+                    
+                    // Add keyframe animation for falling
+                    const styleSheet = document.styleSheets[0];
+                    const keyframes = `@keyframes fall {
+                        0% { transform: translateY(-10vh) rotate(0deg); }
+                        100% { transform: translateY(100vh) rotate(720deg); }
+                    }`;
+                    
+                    if(!document.querySelector('style#confetti-style')) {
+                        const styleEl = document.createElement('style');
+                        styleEl.id = 'confetti-style';
+                        styleEl.innerHTML = keyframes;
+                        document.head.appendChild(styleEl);
+                    }
+                    
+                    confettiContainer.appendChild(confetti);
+                }
+            }
+            
+            // Generate predictions based on input
+            function generatePredictions(action) {
+                const baseScenarios = [
+                    "Sudden cardiac arrest", "Accidental fall", "Electric shock", "Allergic reaction", 
+                    "Choking on food", "Unexpected aneurysm", "Gas leak explosion", "Structural collapse", 
+                    "Vehicle accident", "Random act of violence", "Lightning strike", "Brain hemorrhage",
+                    "Carbon monoxide poisoning", "Drowning in unexpected flood", "Being struck by falling object",
+                    "Sudden extreme allergic reaction", "Venomous animal bite", "Medication interaction", "Radiation exposure"
+                ];
+                
+                const locationWords = ['home', 'house', 'bedroom', 'bathroom', 'kitchen', 'office', 'work', 'outside', 'park', 'street', 'car', 'train', 'bus', 'subway', 'restaurant', 'cafe', 'gym', 'beach'];
+                const activityWords = ['sitting', 'standing', 'walking', 'running', 'eating', 'drinking', 'working', 'reading', 'typing', 'cooking', 'cleaning', 'driving', 'watching', 'listening', 'sleeping', 'exercising'];
+                
+                const actionLower = action.toLowerCase();
+                let customScenarios = [...baseScenarios];
+                
+                // Add context-specific scenarios
+                locationWords.forEach(loc => {
+                    if (actionLower.includes(loc)) {
+                        const locScenarios = {
+                            'bathroom': ["Slipping on wet floor causing fatal head trauma", "Electrocution from faulty appliance near water"],
+                            'kitchen': ["Kitchen fire spreading rapidly", "Fatal cut from broken glass or sharp knife", "Food poisoning leading to severe dehydration"],
+                            'car': ["Collision with another vehicle", "Vehicle malfunction causing catastrophic crash", "Sudden stop throwing you against hard surface"],
+                            'train': ["Collision with another vehicle", "Vehicle malfunction causing catastrophic crash", "Sudden stop throwing you against hard surface"],
+                            'bus': ["Collision with another vehicle", "Vehicle malfunction causing catastrophic crash", "Sudden stop throwing you against hard surface"],
+                            'subway': ["Collision with another vehicle", "Vehicle malfunction causing catastrophic crash", "Sudden stop throwing you against hard surface"],
+                            'beach': ["Sudden riptide pulling you underwater", "Shark attack while swimming", "Sunstroke leading to organ failure"]
+                        };
+                        if(locScenarios[loc]) customScenarios.push(...locScenarios[loc]);
+                    }
+                });
+                
+                activityWords.forEach(act => {
+                    if (actionLower.includes(act)) {
+                        const actScenarios = {
+                            'eating': ["Food lodged in throat causing asphyxiation", "Unknown severe allergy triggered by food"],
+                            'driving': ["Tire blowout at high speed", "Distracted driver crashing into your vehicle", "Bridge collapse while crossing"],
+                            'exercising': ["Undiagnosed heart condition triggered by exertion", "Equipment failure causing crushing injury", "Severe dehydration leading to organ failure"]
+                        };
+                        if(actScenarios[act]) customScenarios.push(...actScenarios[act]);
+                    }
+                });
+                
+                // Shuffle and add timing details
+                return customScenarios
+                    .sort(() => Math.random() - 0.5)
+                    .map(pred => `${pred} in ${Math.floor(Math.random() * 59) + 1} second${Math.floor(Math.random() * 59) + 1 > 1 ? 's' : ''}`);
+            }
+            
+            // Display predictions
+            function displayPredictions(predList) {
+                predictions.innerHTML = '';
+                predictions.style.display = 'block';
+                predList.forEach((pred, i) => {
+                    setTimeout(() => {
+                        const predEl = document.createElement('div');
+                        predEl.classList.add('prediction-item');
+                        predEl.textContent = pred;
+                        predictions.appendChild(predEl);
+                        predEl.scrollIntoView({behavior: 'smooth', block: 'end'});
+                    }, i * 200);
+                });
+            }
+            
+            // Event listeners
+            predictButton.addEventListener('click', () => {
+                const action = actionInput.value.trim();
+                if (action) {
+                    predictions.style.display = 'none';
+                    loading.style.display = 'block';
+                    setTimeout(() => {
+                        loading.style.display = 'none';
+                        displayPredictions(generatePredictions(action));
+                    }, 1500);
+                }
+            });
+            
+            actionInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') predictButton.click();
+            });
+            
+            stopButton.addEventListener('click', () => {
+                createConfetti();
+                overlay.classList.add('active');
+            });
+            
+            closePopup.addEventListener('click', () => overlay.classList.remove('active'));
+            
+            // Reset website when "I am grateful" is clicked
+            gratitudeButton.addEventListener('click', () => {
+                resetWebsite();
+            });
+            
+            overlay.addEventListener('click', e => {
+                if (e.target === overlay) overlay.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>
